@@ -2,41 +2,75 @@ import {
   ActionIcon,
   Alert,
   Badge,
+  Box,
   Button,
   Divider,
   Flex,
   Grid,
+  Menu,
   Paper,
   Text,
   Title,
   Tooltip,
 } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
-import { useCallback, useMemo } from "react";
-import { Panel, PanelGroup } from "react-resizable-panels";
-import { useRecoilValue, useSetRecoilState } from "recoil";
-import { AlertCircle, InfoCircle, Check } from "tabler-icons-react";
+import { useDebouncedValue, useViewportSize } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  ImperativePanelHandle,
+  Panel,
+  PanelGroup,
+} from "react-resizable-panels";
+import { useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil";
+import {
+  AlertCircle,
+  Check,
+  FileDownload,
+  FileUpload,
+  Menu as IconMenu,
+  InfoCircle,
+  Trash,
+  Backspace,
+} from "tabler-icons-react";
 import "./App.css";
 import CodeEditor from "./components/code-editor/CodeEditor";
 import CodeOutputViewer from "./components/code-output-viewer/CodeOutputViewer";
 import ResizeHandle from "./components/resize-handle/ResizeHandle";
-import { CodeErrorValueAtom } from "./state/atoms/CodeErrorValueAtom";
-import { CodeSanitizationSelector } from "./state/selectors/CodeSanitizationSelector";
-import { CodeStatusSelector } from "./state/selectors/CodeStatusSelector";
 import {
   clearLocalStorage,
   getCodeFromLocalStorage,
 } from "./helpers/local-storage.helpers";
-import { notifications } from "@mantine/notifications";
+import { CodeErrorValueAtom } from "./state/atoms/CodeErrorValueAtom";
 import { CodeValueAtom } from "./state/atoms/CodeValueAtom";
+import { CodeSanitizationSelector } from "./state/selectors/CodeSanitizationSelector";
+import { CodeStatusSelector } from "./state/selectors/CodeStatusSelector";
 
 const App: React.FC = () => {
+  const { width } = useViewportSize();
   const setCodeToEditor = useSetRecoilState(CodeValueAtom);
+  const resetCodeValue = useResetRecoilState(CodeValueAtom);
   const sanitizedCode = useRecoilValue(CodeSanitizationSelector);
   const error = useRecoilValue(CodeErrorValueAtom);
   const status = useRecoilValue(CodeStatusSelector);
 
   const debouncedCodeValue = useDebouncedValue(sanitizedCode, 1000);
+
+  const isOnMobile = useMemo(() => width < 992, [width]);
+
+  const errorAndLogsPanelRef = useRef<ImperativePanelHandle>(null);
+
+  /**
+   * Imperatively collapse or expand the side panels based on the viewport size.
+   */
+  useEffect(() => {
+    const sidePanels = errorAndLogsPanelRef.current;
+
+    if (isOnMobile) {
+      sidePanels?.collapse();
+    } else {
+      sidePanels?.expand();
+    }
+  }, [isOnMobile]);
 
   const applyCodeFromLocalStorage = useCallback(() => {
     const code = getCodeFromLocalStorage();
@@ -109,6 +143,56 @@ const App: React.FC = () => {
 
   return (
     <>
+      <Box m={"sm"}>
+        <Flex justify="flex-end">
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <Button
+                size="xs"
+                variant="outline"
+                rightIcon={<IconMenu size={14} />}
+              >
+                Menu
+              </Button>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+              <Menu.Label>Application</Menu.Label>
+              <Menu.Item
+                icon={<FileDownload size={14} color="cyan" />}
+                disabled={status !== "success"}
+                onClick={saveCodeToLocalStorage}
+              >
+                Save
+              </Menu.Item>
+              <Menu.Item
+                icon={<Backspace size={14} />}
+                onClick={resetCodeValue}
+                color="blue"
+              >
+                Clear all code
+              </Menu.Item>
+              <Menu.Item
+                icon={<FileUpload size={14} />}
+                onClick={applyCodeFromLocalStorage}
+              >
+                Apply from cache
+              </Menu.Item>
+
+              <Menu.Divider />
+
+              <Menu.Label>Danger zone</Menu.Label>
+              <Menu.Item
+                color="red"
+                icon={<Trash size={14} />}
+                onClick={clearStorage}
+              >
+                Clear cache
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Flex>
+      </Box>
       <div className={"Container"}>
         <div className={"BottomRow"}>
           <PanelGroup autoSaveId="editorGroup" direction="horizontal">
@@ -118,7 +202,7 @@ const App: React.FC = () => {
                   {/* Editor grid */}
                   <Paper w={"100%"} h={"100%"} p={2}>
                     <Grid align="center">
-                      <Grid.Col span={5}>
+                      <Grid.Col>
                         <Flex align="center">
                           <Title order={4} m={8}>
                             <Text>JS playground</Text>
@@ -127,37 +211,6 @@ const App: React.FC = () => {
                             {memoizedStatus?.badgeText}
                           </Badge>
                         </Flex>
-                      </Grid.Col>
-                      <Grid.Col span="content" offset={3}>
-                        <Button
-                          size={"xs"}
-                          radius={"xl"}
-                          color="cyan"
-                          mr={6}
-                          disabled={status !== "success"}
-                          onClick={saveCodeToLocalStorage}
-                        >
-                          Save
-                        </Button>
-
-                        <Button
-                          size={"xs"}
-                          radius={"xl"}
-                          color="green"
-                          mr={6}
-                          onClick={applyCodeFromLocalStorage}
-                        >
-                          Apply
-                        </Button>
-
-                        <Button
-                          size={"xs"}
-                          radius={"xl"}
-                          color="pink"
-                          onClick={clearStorage}
-                        >
-                          Clear cache
-                        </Button>
                       </Grid.Col>
                     </Grid>
 
@@ -171,7 +224,12 @@ const App: React.FC = () => {
               <ResizeHandle />
             </>
             <>
-              <Panel className={"Panel"} collapsible={true} order={2}>
+              <Panel
+                className={"Panel"}
+                collapsible={true}
+                order={2}
+                ref={errorAndLogsPanelRef}
+              >
                 {/* Output and errors grid */}
 
                 <PanelGroup
@@ -213,7 +271,9 @@ const App: React.FC = () => {
                             <Title
                               order={4}
                               m={8}
-                              color={error?.message ? "#ff6b6b" : "inherit"}
+                              style={{
+                                color: error?.message ? "#ff6b6b" : "inherit",
+                              }}
                             >
                               Errors
                             </Title>
