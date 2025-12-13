@@ -32,8 +32,8 @@ const locateDelimiters = (end: { column: number }, lineContents: string) => {
  */
 export const interpretCode = (code: string) => {
   const transformedCode = Babel.transform(code, { presets: ["react"] }).code;
-  const codeByLine = transformedCode.split("\n");
-  const tokenized = esprima.tokenize(transformedCode, {
+  const codeByLine = transformedCode?.split("\n");
+  const tokenized = esprima.tokenize(transformedCode || "", {
     loc: true,
   }) as Array<CustomLoc>;
 
@@ -45,7 +45,7 @@ export const interpretCode = (code: string) => {
       { value, loc: { end } }: CustomLoc
     ) => {
       const lineNumber = end.line;
-      const lineContents = codeByLine[lineNumber - 1];
+      const lineContents = codeByLine ? codeByLine[lineNumber - 1] : "";
       const lineHasMoreDelimiters = locateDelimiters(end, lineContents);
 
       if (expressions[lineNumber]) {
@@ -67,7 +67,9 @@ export const interpretCode = (code: string) => {
         Object.values(parens).every((count) => count === 0)
       ) {
         wasOpen = false;
-        expressions[lineNumber] = codeByLine.slice(0, lineNumber).join("\n");
+        expressions[lineNumber] = codeByLine
+          ? codeByLine.slice(0, lineNumber).join("\n")
+          : "";
         return expressions;
       }
 
@@ -75,7 +77,9 @@ export const interpretCode = (code: string) => {
         !lineHasMoreDelimiters &&
         Object.values(parens).every((count) => count === 0)
       ) {
-        expressions[lineNumber] = codeByLine.slice(0, lineNumber).join("\n");
+        expressions[lineNumber] = codeByLine
+          ? codeByLine.slice(0, lineNumber).join("\n")
+          : "";
         return expressions;
       }
 
