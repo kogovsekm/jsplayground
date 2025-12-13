@@ -166,9 +166,7 @@ const App: React.FC = () => {
               </Menu.Item>
               <Menu.Item
                 icon={<Backspace size={14} />}
-                onClick={() =>
-                  setCodeToEditor(`                              `)
-                }
+                onClick={() => setCodeToEditor(``)}
                 color="blue"
               >
                 Clear all code
