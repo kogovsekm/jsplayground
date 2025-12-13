@@ -1,6 +1,5 @@
 import isEqual from "react-fast-compare";
 import React, { useCallback, useEffect, useState } from "react";
-import { useResetRecoilState, useSetRecoilState } from "recoil";
 import { CodeErrorValueAtom } from "../../../state/atoms/CodeErrorValueAtom";
 import { CodeStatusValueAtom } from "../../../state/atoms/CodeStatusAtom";
 import { CustomErrorObject } from "../../../types/errors/ErrorTypes";
@@ -10,6 +9,7 @@ import {
   ConsoleOutput,
   ConsoleOutputViewerProps,
 } from "../../../types/components/console-output-viewer-types/ConsoleOutputViewerTypes";
+import { useSetAtom } from "jotai";
 
 /**
  * @description ConsoleOutputViewer will hijack the console.log function and capture the output of the code. It will then display the output in a list.
@@ -20,15 +20,17 @@ import {
 const ConsoleOutputViewer: React.FC<ConsoleOutputViewerProps> = ({
   codeValue,
 }: ConsoleOutputViewerProps) => {
-  const setError = useSetRecoilState(CodeErrorValueAtom);
-  const resetErrorObj = useResetRecoilState(CodeErrorValueAtom);
-  const setStatus = useSetRecoilState(CodeStatusValueAtom);
+  const setError = useSetAtom(CodeErrorValueAtom);
+  const setStatus = useSetAtom(CodeStatusValueAtom);
   const [consoleOutput, setConsoleOutput] = useState<Array<ConsoleOutput>>([]);
 
   const handleSuccess = useCallback(() => {
-    resetErrorObj();
+    setError({
+      title: "Error",
+      message: "",
+    });
     setStatus("success");
-  }, [resetErrorObj, setStatus]);
+  }, [setError, setStatus]);
 
   const handleError = useCallback(
     ({ title, message }: CustomErrorObject) => {

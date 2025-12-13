@@ -1,25 +1,27 @@
 import { Box, Divider } from "@mantine/core";
+import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo } from "react";
 import isEqual from "react-fast-compare";
-import { useResetRecoilState, useSetRecoilState } from "recoil";
 import { interpretCode } from "../../helpers/code-evaluation.helpers";
 import { CodeErrorValueAtom } from "../../state/atoms/CodeErrorValueAtom";
 import { CodeStatusValueAtom } from "../../state/atoms/CodeStatusAtom";
-import { CustomErrorObject } from "../../types/errors/ErrorTypes";
 import { CodeOutputViewerProps } from "../../types/components/code-output-viewer-types/CodeOutputViewerTypes";
+import { CustomErrorObject } from "../../types/errors/ErrorTypes";
 
 const CodeOutputViewer: React.FC<CodeOutputViewerProps> = ({
   codeValue,
 }: CodeOutputViewerProps) => {
-  const setError = useSetRecoilState(CodeErrorValueAtom);
-  const resetErrorObj = useResetRecoilState(CodeErrorValueAtom);
-  const setStatus = useSetRecoilState(CodeStatusValueAtom);
+  const setError = useSetAtom(CodeErrorValueAtom);
+  const setStatus = useSetAtom(CodeStatusValueAtom);
   const [resultsArray, setResultsArray] = React.useState<Array<string>>([]);
 
   const handleSuccess = useCallback(() => {
-    resetErrorObj();
+    setError({
+      title: "Error",
+      message: "",
+    });
     setStatus("success");
-  }, [resetErrorObj, setStatus]);
+  }, [setError, setStatus]);
 
   const handleError = useCallback(
     ({ title, message }: CustomErrorObject) => {

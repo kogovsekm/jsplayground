@@ -1,10 +1,11 @@
 import { javascript } from "@codemirror/lang-javascript";
 import CodeMirror from "@uiw/react-codemirror";
-import { useRecoilState } from "recoil";
+
 import { CodeValueAtom } from "../../state/atoms/CodeValueAtom";
+import { useAtom } from "jotai";
 
 const CodeEditor: React.FC = () => {
-  const [code, setCode] = useRecoilState(CodeValueAtom);
+  const [code, setCode] = useAtom(CodeValueAtom);
 
   return (
     <CodeMirror

@@ -21,7 +21,6 @@ import {
   Panel,
   PanelGroup,
 } from "react-resizable-panels";
-import { useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil";
 import {
   AlertCircle,
   Check,
@@ -44,14 +43,14 @@ import { CodeErrorValueAtom } from "./state/atoms/CodeErrorValueAtom";
 import { CodeValueAtom } from "./state/atoms/CodeValueAtom";
 import { CodeSanitizationSelector } from "./state/selectors/CodeSanitizationSelector";
 import { CodeStatusSelector } from "./state/selectors/CodeStatusSelector";
+import { useAtomValue, useSetAtom } from "jotai";
 
 const App: React.FC = () => {
   const { width } = useViewportSize();
-  const setCodeToEditor = useSetRecoilState(CodeValueAtom);
-  const resetCodeValue = useResetRecoilState(CodeValueAtom);
-  const sanitizedCode = useRecoilValue(CodeSanitizationSelector);
-  const error = useRecoilValue(CodeErrorValueAtom);
-  const status = useRecoilValue(CodeStatusSelector);
+  const setCodeToEditor = useSetAtom(CodeValueAtom);
+  const sanitizedCode = useAtomValue(CodeSanitizationSelector);
+  const error = useAtomValue(CodeErrorValueAtom);
+  const status = useAtomValue(CodeStatusSelector);
 
   const debouncedCodeValue = useDebouncedValue(sanitizedCode, 1000);
 
@@ -167,7 +166,9 @@ const App: React.FC = () => {
               </Menu.Item>
               <Menu.Item
                 icon={<Backspace size={14} />}
-                onClick={resetCodeValue}
+                onClick={() =>
+                  setCodeToEditor(`                              `)
+                }
                 color="blue"
               >
                 Clear all code

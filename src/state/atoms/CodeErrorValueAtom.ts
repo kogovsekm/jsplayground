@@ -1,10 +1,7 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 import { CustomErrorObject } from "../../types/errors/ErrorTypes";
 
 export const CodeErrorValueAtom = atom<CustomErrorObject>({
-  key: "CodeErrorValueAtom",
-  default: {
-    title: "Error",
-    message: "",
-  },
+  title: "Error",
+  message: "",
 });
