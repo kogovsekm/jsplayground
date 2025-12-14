@@ -7,6 +7,7 @@
     "start": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "provision": "npm install --legacy-peer-deps && npm run lint",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "npm run predeploy && gh-pages -d dist"
@@ -33,7 +34,7 @@
     "@types/espree": "10.1.0",
     "@types/node": "25.0.1",
     "@types/react": "19.2.7",
-    "@types/react-dom": "19.2.7",
+    "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "6.7.4",
     "@typescript-eslint/parser": "6.7.4",
     "@vitejs/plugin-react-swc": "3.4.0",
