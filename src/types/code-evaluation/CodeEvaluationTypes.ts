@@ -1,7 +1,6 @@
-import * as esprima from "esprima";
-
 export type ExpressionMap = Record<number, string>;
-export interface CustomLoc extends esprima.Token {
+export interface CustomLoc {
+  value: string;
   loc: {
     end: {
       line: number;

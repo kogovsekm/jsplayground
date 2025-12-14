@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as Babel from "@babel/standalone";
-import * as esprima from "esprima";
+import * as espree from "espree";
 import {
   CustomLoc,
   ExpressionMap,
@@ -33,9 +33,11 @@ const locateDelimiters = (end: { column: number }, lineContents: string) => {
 export const interpretCode = (code: string) => {
   const transformedCode = Babel.transform(code, { presets: ["react"] }).code;
   const codeByLine = transformedCode?.split("\n");
-  const tokenized = esprima.tokenize(transformedCode || "", {
+  const tokenized = espree.tokenize(transformedCode || "", {
     loc: true,
-  }) as Array<CustomLoc>;
+    ecmaVersion: "latest",
+    sourceType: "module",
+  }) as unknown as Array<CustomLoc>;
 
   const parens: Record<string, number> = { "(": 0, "{": 0, "[": 0 };
   let wasOpen = false;
