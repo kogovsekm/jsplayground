@@ -1,6 +1,6 @@
 import { Box, Divider } from "@mantine/core";
 import { useSetAtom } from "jotai";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { JSX, useCallback, useEffect, useMemo } from "react";
 import isEqual from "react-fast-compare";
 import { interpretCode } from "../../helpers/code-evaluation.helpers";
 import { CodeErrorValueAtom } from "../../state/atoms/CodeErrorValueAtom";
