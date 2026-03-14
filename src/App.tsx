@@ -154,17 +154,17 @@ const App = () => {
           };
 
   return (
-    <div className="relative flex min-h-screen flex-col px-4 py-4 sm:px-8 sm:py-8">
+    <div className="relative flex h-screen flex-col overflow-hidden px-4 py-4 sm:px-8 sm:py-8">
       <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4">
         <header className="rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.45)] backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-cyan-300/80">
-                Dark Sandbox
-              </p>
               <h1 className="mt-1 font-[inherit] text-2xl font-semibold tracking-tight text-slate-50 sm:text-3xl">
                 JS playground
               </h1>
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-cyan-300/80">
+                Sandbox
+              </p>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -208,7 +208,11 @@ const App = () => {
           </div>
         </header>
         <div className="min-h-0 flex-1">
-          <PanelGroup id="editorGroup" orientation="horizontal">
+          <PanelGroup
+            id="editorGroup"
+            orientation="horizontal"
+            style={{ height: "100%" }}
+          >
             <>
               <Panel className={"Panel"} collapsible={true} id="editor-panel">
                 <div className={"PanelContent"}>
@@ -244,12 +248,17 @@ const App = () => {
               <Panel
                 className={"Panel"}
                 collapsible={true}
+                collapsedSize={5}
                 id="side-panel"
                 panelRef={errorAndLogsPanelRef}
               >
                 {/* Output and errors grid */}
 
-                <PanelGroup id="outputAndErrorGroup" orientation="vertical">
+                <PanelGroup
+                  id="outputAndErrorGroup"
+                  orientation="vertical"
+                  style={{ height: "100%" }}
+                >
                   <>
                     <Panel
                       className="Panel"
