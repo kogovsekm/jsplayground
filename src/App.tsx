@@ -225,7 +225,7 @@ const App = () => {
                           Editor
                         </p>
                         <h2 className="mt-1 text-lg font-semibold text-card-foreground">
-                          JavaScript input
+                          JS input
                         </h2>
                       </div>
                       <Badge variant={statusMeta.badgeVariant}>
