@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { CodeErrorValueAtom } from "../../../state/atoms/CodeErrorValueAtom";
 import { CodeStatusValueAtom } from "../../../state/atoms/CodeStatusAtom";
 import { CustomErrorObject } from "../../../types/errors/ErrorTypes";
-import { Divider } from "@mantine/core";
+import { Separator } from "@/components/ui/separator";
 import "../styles/ConsoleOutputViewer.css";
 import {
   ConsoleOutput,
@@ -17,9 +17,7 @@ import { useSetAtom } from "jotai";
  * @param {string} codeValue - The code to be evaluated
  * @returns {JSX.Element}
  */
-const ConsoleOutputViewer: React.FC<ConsoleOutputViewerProps> = ({
-  codeValue,
-}: ConsoleOutputViewerProps) => {
+const ConsoleOutputViewer = ({ codeValue }: ConsoleOutputViewerProps) => {
   const setError = useSetAtom(CodeErrorValueAtom);
   const setStatus = useSetAtom(CodeStatusValueAtom);
   const [consoleOutput, setConsoleOutput] = useState<Array<ConsoleOutput>>([]);
@@ -41,7 +39,7 @@ const ConsoleOutputViewer: React.FC<ConsoleOutputViewerProps> = ({
 
       setStatus("error");
     },
-    [setError, setStatus]
+    [setError, setStatus],
   );
 
   const runConsoleCode = useCallback(() => {
@@ -73,22 +71,31 @@ const ConsoleOutputViewer: React.FC<ConsoleOutputViewerProps> = ({
   }, [codeValue, runConsoleCode]);
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col rounded-lg border border-border/60 bg-[var(--panel-muted)] p-4">
       <div>
-        {consoleOutput.map((output, consoleOutputIndex) => (
-          <>
-            {consoleOutputIndex !== 0 && <Divider p={4} />}
-            <div key={JSON.stringify(output)}>
-              {output.map((arg) => (
-                <span className="console-text-value" key={JSON.stringify(arg)}>
-                  {JSON.stringify(arg)}
-                </span>
-              ))}
+        {consoleOutput.map((output, consoleOutputIndex) => {
+          const outputKey = JSON.stringify(output);
+
+          return (
+            <div className="space-y-3" key={outputKey}>
+              {consoleOutputIndex !== 0 ? <Separator /> : null}
+              <div>
+                {output.map((arg, argIndex) => {
+                  return (
+                    <span
+                      className="console-text-value"
+                      key={`${outputKey}-${argIndex}`}
+                    >
+                      {JSON.stringify(arg)}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
-          </>
-        ))}
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 };
 

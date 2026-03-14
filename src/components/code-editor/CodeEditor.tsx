@@ -4,7 +4,11 @@ import CodeMirror from "@uiw/react-codemirror";
 import { CodeValueAtom } from "../../state/atoms/CodeValueAtom";
 import { useAtom } from "jotai";
 
-const CodeEditor: React.FC = () => {
+/**
+ * @description Renders the CodeMirror editor bound to the shared playground code state.
+ * @returns {JSX.Element} The configured JavaScript editor.
+ */
+const CodeEditor = () => {
   const [code, setCode] = useAtom(CodeValueAtom);
 
   return (

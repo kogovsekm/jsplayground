@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as Babel from "@babel/standalone";
 import * as espree from "espree";
 import {
@@ -44,7 +43,7 @@ export const interpretCode = (code: string) => {
   const exp: ExpressionMap = tokenized.reduce(
     (
       expressions: Record<number, string>,
-      { value, loc: { end } }: CustomLoc
+      { value, loc: { end } }: CustomLoc,
     ) => {
       const lineNumber = end.line;
       const lineContents = codeByLine ? codeByLine[lineNumber - 1] : "";
@@ -87,7 +86,7 @@ export const interpretCode = (code: string) => {
 
       return expressions;
     },
-    {}
+    {},
   );
 
   return exp;

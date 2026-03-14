@@ -1,6 +1,6 @@
 import React from "react";
 import isEqual from "react-fast-compare";
-import { PanelResizeHandle } from "react-resizable-panels";
+import { Separator as PanelSeparator } from "react-resizable-panels";
 
 interface ResizeHandleProps {
   id?: string;
@@ -10,7 +10,7 @@ const ResizeHandle: React.FC<ResizeHandleProps> = ({
   id,
 }: ResizeHandleProps) => {
   return (
-    <PanelResizeHandle className={"ResizeHandleOuter"} id={id}>
+    <PanelSeparator className={"ResizeHandleOuter"} id={id}>
       <div className={"ResizeHandleInner"}>
         <svg className={"Icon"} viewBox="0 0 24 24">
           <path
@@ -19,7 +19,7 @@ const ResizeHandle: React.FC<ResizeHandleProps> = ({
           />
         </svg>
       </div>
-    </PanelResizeHandle>
+    </PanelSeparator>
   );
 };
 

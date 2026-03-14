@@ -1,16 +1,19 @@
-import { Box, Divider } from "@mantine/core";
 import { useSetAtom } from "jotai";
-import React, { JSX, useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect } from "react";
 import isEqual from "react-fast-compare";
+import { Separator } from "@/components/ui/separator";
 import { interpretCode } from "../../helpers/code-evaluation.helpers";
 import { CodeErrorValueAtom } from "../../state/atoms/CodeErrorValueAtom";
 import { CodeStatusValueAtom } from "../../state/atoms/CodeStatusAtom";
 import { CodeOutputViewerProps } from "../../types/components/code-output-viewer-types/CodeOutputViewerTypes";
 import { CustomErrorObject } from "../../types/errors/ErrorTypes";
 
-const CodeOutputViewer: React.FC<CodeOutputViewerProps> = ({
-  codeValue,
-}: CodeOutputViewerProps) => {
+/**
+ * @description Evaluates editor expressions and renders their computed output values.
+ * @param {CodeOutputViewerProps} props - Component props containing the debounced code string.
+ * @returns {JSX.Element} The rendered output list.
+ */
+const CodeOutputViewer = ({ codeValue }: CodeOutputViewerProps) => {
   const setError = useSetAtom(CodeErrorValueAtom);
   const setStatus = useSetAtom(CodeStatusValueAtom);
   const [resultsArray, setResultsArray] = React.useState<Array<string>>([]);
@@ -32,7 +35,7 @@ const CodeOutputViewer: React.FC<CodeOutputViewerProps> = ({
 
       setStatus("error");
     },
-    [setError, setStatus]
+    [setError, setStatus],
   );
 
   /**
@@ -62,7 +65,7 @@ const CodeOutputViewer: React.FC<CodeOutputViewerProps> = ({
           const codeString = expression[1];
           const func = new Function(
             "codeString",
-            codeString + "\nreturn eval(codeString);"
+            codeString + "\nreturn eval(codeString);",
           );
           const result = func(codeString);
 
@@ -101,22 +104,28 @@ const CodeOutputViewer: React.FC<CodeOutputViewerProps> = ({
     });
   }, [codeValue, handleError]);
 
-  const codeOutput = useMemo((): Array<JSX.Element> | null => {
-    const elementsArray: Array<JSX.Element> = [];
-
-    resultsArray.forEach((result, index) => {
-      elementsArray.push(
-        <div key={`${index}-${result}`}>
-          {index > 0 && <Divider />}
-          <div>{result}</div>
+  return (
+    <div className="flex h-full min-h-0 flex-col rounded-lg border border-border/60 bg-[var(--panel-muted)] p-4">
+      {resultsArray.length > 0 ? (
+        <div className="space-y-3 text-sm text-foreground">
+          {resultsArray.map((result, index) => {
+            return (
+              <div key={`${index}-${result}`} className="space-y-3">
+                {index > 0 ? <Separator /> : null}
+                <div className="break-words font-mono text-xs leading-6 text-slate-200">
+                  {result}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      );
-    }, []);
-
-    return elementsArray;
-  }, [resultsArray]);
-
-  return <Box p={4}>{codeOutput}</Box>;
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          Run valid code to inspect evaluated expression output.
+        </div>
+      )}
+    </div>
+  );
 };
 
 CodeOutputViewer.displayName = "CodeOutputViewer";

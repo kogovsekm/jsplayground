@@ -1,37 +1,39 @@
+import { useEffect, useRef, useState } from "react";
 import {
-  ActionIcon,
-  Alert,
-  Badge,
-  Box,
-  Button,
-  Divider,
-  Flex,
-  Grid,
-  Menu,
-  Paper,
-  Text,
-  Title,
-  Tooltip,
-} from "@mantine/core";
-import { useDebouncedValue, useViewportSize } from "@mantine/hooks";
-import { notifications } from "@mantine/notifications";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import {
-  ImperativePanelHandle,
+  Group as PanelGroup,
   Panel,
-  PanelGroup,
+  PanelImperativeHandle,
 } from "react-resizable-panels";
 import {
   AlertCircle,
-  Check,
-  FileDownload,
-  FileUpload,
-  Menu as IconMenu,
-  InfoCircle,
-  Trash,
-  Backspace,
-} from "tabler-icons-react";
+  AlertTriangle,
+  CheckCircle2,
+  Eraser,
+  FileDown,
+  FileUp,
+  Info,
+  Menu,
+  Trash2,
+} from "lucide-react";
+import { toast } from "sonner";
 import "./App.css";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import CodeEditor from "./components/code-editor/CodeEditor";
 import CodeOutputViewer from "./components/code-output-viewer/CodeOutputViewer";
 import ResizeHandle from "./components/resize-handle/ResizeHandle";
@@ -45,18 +47,44 @@ import { CodeSanitizationSelector } from "./state/selectors/CodeSanitizationSele
 import { CodeStatusSelector } from "./state/selectors/CodeStatusSelector";
 import { useAtomValue, useSetAtom } from "jotai";
 
-const App: React.FC = () => {
-  const { width } = useViewportSize();
+/**
+ * @description Renders the interactive JavaScript playground shell, menu actions, and output panels.
+ * @returns {JSX.Element} The application layout.
+ */
+const App = () => {
   const setCodeToEditor = useSetAtom(CodeValueAtom);
   const sanitizedCode = useAtomValue(CodeSanitizationSelector);
   const error = useAtomValue(CodeErrorValueAtom);
   const status = useAtomValue(CodeStatusSelector);
+  const [debouncedCodeValue, setDebouncedCodeValue] = useState(sanitizedCode);
+  const [windowWidth, setWindowWidth] = useState(() => {
+    return window.innerWidth;
+  });
 
-  const debouncedCodeValue = useDebouncedValue(sanitizedCode, 1000);
+  const errorAndLogsPanelRef = useRef<PanelImperativeHandle>(null);
+  const isOnMobile = windowWidth < 992;
 
-  const isOnMobile = useMemo(() => width < 992, [width]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedCodeValue(sanitizedCode);
+    }, 1000);
 
-  const errorAndLogsPanelRef = useRef<ImperativePanelHandle>(null);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [sanitizedCode]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   /**
    * Imperatively collapse or expand the side panels based on the viewport size.
@@ -71,153 +99,143 @@ const App: React.FC = () => {
     }
   }, [isOnMobile]);
 
-  const applyCodeFromLocalStorage = useCallback(() => {
+  const applyCodeFromLocalStorage = () => {
     const code = getCodeFromLocalStorage();
 
     if (!code) {
-      notifications.show({
-        title: "No code found",
-        message: "No code was found in local storage.",
-        withBorder: true,
-        icon: <AlertCircle size="1.1rem" />,
-        color: "red",
+      toast.error("No code found", {
+        description: "No code was found in local storage.",
+        icon: <AlertTriangle className="size-4" />,
       });
     } else {
       setCodeToEditor(code);
-      notifications.show({
-        title: "Code loaded",
-        message: "Your code has been loaded from local storage.",
-        withBorder: true,
-        icon: <Check size="1.1rem" />,
-        color: "teal",
+      toast.success("Code loaded", {
+        description: "Your code has been loaded from local storage.",
+        icon: <CheckCircle2 className="size-4" />,
       });
     }
-  }, [setCodeToEditor]);
+  };
 
-  const saveCodeToLocalStorage = useCallback(() => {
+  const saveCodeToLocalStorage = () => {
     localStorage.setItem("code", sanitizedCode);
 
-    notifications.show({
-      title: "Code saved",
-      message: "Your code has been saved to local storage.",
-      withBorder: true,
-      icon: <Check size="1.1rem" />,
-      color: "teal",
+    toast.success("Code saved", {
+      description: "Your code has been saved to local storage.",
+      icon: <CheckCircle2 className="size-4" />,
     });
-  }, [sanitizedCode]);
+  };
 
-  const clearStorage = useCallback(() => {
+  const clearStorage = () => {
     clearLocalStorage();
 
-    notifications.show({
-      title: "Local storage cleared",
-      message: "Your code has been cleared from local storage.",
-      withBorder: true,
-      icon: <Check size="1.1rem" />,
-      color: "teal",
+    toast.success("Local storage cleared", {
+      description: "Your code has been cleared from local storage.",
+      icon: <CheckCircle2 className="size-4" />,
     });
-  }, []);
+  };
 
-  const memoizedStatus = useMemo(() => {
-    if (status === "error") {
-      return {
-        badgeColor: "red",
-        badgeText: "Error",
-        borderClass: "error-red-border",
-      };
-    } else if (status === "success") {
-      return {
-        badgeColor: "green",
-        badgeText: "Valid code",
-        borderClass: "success-green-border",
-      };
-    }
-
-    return {
-      badgeColor: "blue",
-      badgeText: "No code",
-      borderClass: "no-code-border",
-    };
-  }, [status]);
+  const statusMeta =
+    status === "error"
+      ? {
+          badgeVariant: "destructive" as const,
+          badgeText: "Error",
+          borderClassName: "border-red-400/70 shadow-red-500/10",
+        }
+      : status === "success"
+        ? {
+            badgeVariant: "success" as const,
+            badgeText: "Valid code",
+            borderClassName: "border-emerald-300/60 shadow-emerald-500/10",
+          }
+        : {
+            badgeVariant: "secondary" as const,
+            badgeText: "No code",
+            borderClassName: "border-slate-600/70 shadow-black/10",
+          };
 
   return (
-    <>
-      <Box m={"sm"}>
-        <Flex justify="flex-end">
-          <Menu shadow="md" width={200}>
-            <Menu.Target>
-              <Button
-                size="xs"
-                variant="outline"
-                rightIcon={<IconMenu size={14} />}
-              >
-                Menu
-              </Button>
-            </Menu.Target>
-
-            <Menu.Dropdown>
-              <Menu.Label>Application</Menu.Label>
-              <Menu.Item
-                icon={<FileDownload size={14} color="cyan" />}
-                disabled={status !== "success"}
-                onClick={saveCodeToLocalStorage}
-              >
-                Save
-              </Menu.Item>
-              <Menu.Item
-                icon={<Backspace size={14} />}
-                onClick={() => setCodeToEditor(``)}
-                color="blue"
-              >
-                Clear all code
-              </Menu.Item>
-              <Menu.Item
-                icon={<FileUpload size={14} />}
-                onClick={applyCodeFromLocalStorage}
-              >
-                Apply from cache
-              </Menu.Item>
-
-              <Menu.Divider />
-
-              <Menu.Label>Danger zone</Menu.Label>
-              <Menu.Item
-                color="red"
-                icon={<Trash size={14} />}
-                onClick={clearStorage}
-              >
-                Clear cache
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        </Flex>
-      </Box>
-      <div className={"Container"}>
-        <div className={"BottomRow"}>
-          <PanelGroup autoSaveId="editorGroup" direction="horizontal">
+    <div className="relative flex min-h-screen flex-col px-4 py-4 sm:px-8 sm:py-8">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4">
+        <header className="rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-cyan-300/80">
+                Dark Sandbox
+              </p>
+              <h1 className="mt-1 font-[inherit] text-2xl font-semibold tracking-tight text-slate-50 sm:text-3xl">
+                JS playground
+              </h1>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="border-cyan-400/30 bg-slate-950/60 text-slate-100 hover:bg-cyan-400/10"
+                  size="sm"
+                  variant="outline"
+                >
+                  Menu
+                  <Menu className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Application</DropdownMenuLabel>
+                <DropdownMenuItem
+                  disabled={status !== "success"}
+                  onClick={saveCodeToLocalStorage}
+                >
+                  <FileDown className="size-4 text-cyan-300" />
+                  Save
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCodeToEditor("")}>
+                  <Eraser className="size-4" />
+                  Clear all code
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={applyCodeFromLocalStorage}>
+                  <FileUp className="size-4" />
+                  Apply from cache
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Danger zone</DropdownMenuLabel>
+                <DropdownMenuItem
+                  className="text-red-200 focus:bg-red-500/15 focus:text-red-100"
+                  onClick={clearStorage}
+                >
+                  <Trash2 className="size-4" />
+                  Clear cache
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+        <div className="min-h-0 flex-1">
+          <PanelGroup id="editorGroup" orientation="horizontal">
             <>
-              <Panel className={"Panel"} collapsible={true} order={1}>
+              <Panel className={"Panel"} collapsible={true} id="editor-panel">
                 <div className={"PanelContent"}>
-                  {/* Editor grid */}
-                  <Paper w={"100%"} h={"100%"} p={2}>
-                    <Grid align="center">
-                      <Grid.Col>
-                        <Flex align="center">
-                          <Title order={4} m={8}>
-                            <Text>JS playground</Text>
-                          </Title>
-                          <Badge color={memoizedStatus?.badgeColor}>
-                            {memoizedStatus?.badgeText}
-                          </Badge>
-                        </Flex>
-                      </Grid.Col>
-                    </Grid>
-
-                    <Divider p={4} />
-                    <div>
+                  <section
+                    className={`flex h-full w-full flex-col rounded-3xl border bg-card/95 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.45)] backdrop-blur ${statusMeta.borderClassName}`}
+                  >
+                    <div className="flex items-center justify-between gap-3 px-2 py-2">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                          Editor
+                        </p>
+                        <h2 className="mt-1 text-lg font-semibold text-card-foreground">
+                          JavaScript input
+                        </h2>
+                      </div>
+                      <Badge variant={statusMeta.badgeVariant}>
+                        {statusMeta.badgeText}
+                      </Badge>
+                    </div>
+                    <Separator className="my-3" />
+                    <div
+                      className="min-h-0 flex-1 overflow-hidden rounded-xl border border-white/8"
+                      style={{ backgroundColor: "var(--editor-background)" }}
+                    >
                       <CodeEditor />
                     </div>
-                  </Paper>
+                  </section>
                 </div>
               </Panel>
               <ResizeHandle />
@@ -226,80 +244,115 @@ const App: React.FC = () => {
               <Panel
                 className={"Panel"}
                 collapsible={true}
-                order={2}
-                ref={errorAndLogsPanelRef}
+                id="side-panel"
+                panelRef={errorAndLogsPanelRef}
               >
                 {/* Output and errors grid */}
 
-                <PanelGroup
-                  autoSaveId="outputAndErrorGroup"
-                  direction="vertical"
-                >
+                <PanelGroup id="outputAndErrorGroup" orientation="vertical">
                   <>
-                    <Panel className="Panel" collapsible={true} order={1}>
+                    <Panel
+                      className="Panel"
+                      collapsible={true}
+                      id="output-panel"
+                    >
                       <div className="PanelContent">
-                        <Paper w={"100%"} h={"100%"} p={2}>
-                          <Flex align="center">
-                            <Title order={4} m={8}>
-                              Code output
-                            </Title>
-                            <Tooltip
-                              label="Code output section will display contents of code that is run in the editor"
-                              color="dark"
-                            >
-                              <ActionIcon color="cyan">
-                                <InfoCircle />
-                              </ActionIcon>
+                        <section className="flex h-full w-full flex-col rounded-3xl border border-white/10 bg-card/95 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.35)] backdrop-blur">
+                          <div className="flex items-center gap-2 px-2 py-2">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                                Output
+                              </p>
+                              <h2 className="mt-1 text-lg font-semibold text-card-foreground">
+                                Code output
+                              </h2>
+                            </div>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  aria-label="Code output information"
+                                  className="ml-auto inline-flex size-8 items-center justify-center rounded-full border border-border/70 bg-slate-900/60 text-cyan-300 transition-colors hover:bg-slate-800/80"
+                                  type="button"
+                                >
+                                  <Info className="size-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Code output displays the evaluated value of
+                                expressions run in the editor.
+                              </TooltipContent>
                             </Tooltip>
-                          </Flex>
-
-                          <Divider p={4} />
-                          <div>
-                            <CodeOutputViewer
-                              codeValue={debouncedCodeValue[0]}
-                            />
                           </div>
-                        </Paper>
+                          <Separator className="my-3" />
+                          <div className="min-h-0 flex-1 overflow-auto">
+                            <CodeOutputViewer codeValue={debouncedCodeValue} />
+                          </div>
+                        </section>
                       </div>
                     </Panel>
                     <ResizeHandle />
-                    <Panel className="Panel" collapsible={true} order={1}>
+                    <Panel
+                      className="Panel"
+                      collapsible={true}
+                      id="error-panel"
+                    >
                       <div className="PanelContent">
-                        <Paper w={"100%"} h={"100%"} p={2}>
-                          <Flex align="center">
-                            <Title
-                              order={4}
-                              m={8}
-                              style={{
-                                color: error?.message ? "#ff6b6b" : "inherit",
-                              }}
-                            >
-                              Errors
-                            </Title>
-                            <Tooltip
-                              label="Errors section will display any errors that occur when running the code"
-                              color="dark"
-                            >
-                              <ActionIcon color="cyan">
-                                <InfoCircle />
-                              </ActionIcon>
-                            </Tooltip>
-                          </Flex>
-
-                          <Divider p={4} />
-                          <div>
-                            {error.message && (
-                              <Alert
-                                icon={<AlertCircle size="1rem" />}
-                                title={error?.title ?? "Error"}
-                                color="red"
-                                variant="outline"
+                        <section className="flex h-full w-full flex-col rounded-3xl border border-white/10 bg-card/95 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.35)] backdrop-blur">
+                          <div className="flex items-center gap-2 px-2 py-2">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                                Diagnostics
+                              </p>
+                              <h2
+                                className={`mt-1 text-lg font-semibold ${error.message ? "text-red-300" : "text-card-foreground"}`}
                               >
-                                <pre>{error?.message ?? "Unknown error"}</pre>
+                                Errors
+                              </h2>
+                            </div>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  aria-label="Error panel information"
+                                  className="ml-auto inline-flex size-8 items-center justify-center rounded-full border border-border/70 bg-slate-900/60 text-cyan-300 transition-colors hover:bg-slate-800/80"
+                                  type="button"
+                                >
+                                  <Info className="size-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Errors displays syntax and runtime issues raised
+                                while the editor code runs.
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <Separator className="my-3" />
+                          <div className="min-h-0 flex-1 overflow-auto">
+                            {error.message ? (
+                              <Alert
+                                className="border-red-400/30 bg-red-500/8"
+                                variant="destructive"
+                              >
+                                <AlertCircle className="size-4" />
+                                <AlertTitle>
+                                  {error.title ?? "Error"}
+                                </AlertTitle>
+                                <AlertDescription>
+                                  <pre>{error.message ?? "Unknown error"}</pre>
+                                </AlertDescription>
                               </Alert>
+                            ) : (
+                              <div
+                                className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/70 px-4 text-center text-sm text-muted-foreground"
+                                style={{
+                                  backgroundColor: "var(--panel-muted)",
+                                }}
+                              >
+                                No current errors. Invalid syntax or runtime
+                                exceptions will appear here.
+                              </div>
                             )}
                           </div>
-                        </Paper>
+                        </section>
                       </div>
                     </Panel>
                   </>
@@ -309,7 +362,7 @@ const App: React.FC = () => {
           </PanelGroup>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
