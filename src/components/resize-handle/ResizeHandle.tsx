@@ -1,26 +1,29 @@
-import React from "react";
-import isEqual from "react-fast-compare";
+import type { ReactElement } from "react";
 import { Separator as PanelSeparator } from "react-resizable-panels";
 
 interface ResizeHandleProps {
   id?: string;
 }
 
-const ResizeHandle: React.FC<ResizeHandleProps> = ({
-  id,
-}: ResizeHandleProps) => {
+/**
+ * Renders an accessible panel separator with an orientation-aware dot grip.
+ *
+ * @param props - Resize handle properties.
+ * @param props.id - Optional identifier forwarded to the panel separator.
+ * @returns The resize handle element.
+ */
+function ResizeHandle({ id }: ResizeHandleProps): ReactElement {
   return (
-    <PanelSeparator className={"ResizeHandleOuter"} id={id}>
-      <div className={"ResizeHandleInner"}>
-        <svg className={"Icon"} viewBox="0 0 24 24">
-          <path
-            fill="currentColor"
-            d="M8,18H11V15H2V13H22V15H13V18H16L12,22L8,18M12,2L8,6H11V9H2V11H22V9H13V6H16L12,2Z"
-          />
-        </svg>
-      </div>
+    <PanelSeparator className="ResizeHandleOuter" id={id}>
+      <span className="ResizeHandleInner">
+        <span aria-hidden="true" className="ResizeHandleDots">
+          <span className="ResizeHandleDot" />
+          <span className="ResizeHandleDot" />
+          <span className="ResizeHandleDot" />
+        </span>
+      </span>
     </PanelSeparator>
   );
-};
+}
 
-export default React.memo(ResizeHandle, isEqual);
+export default ResizeHandle;

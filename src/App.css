@@ -22,35 +22,60 @@
 }
 
 .ResizeHandleOuter {
-  flex: 0 0 0.75rem;
   position: relative;
   outline: none;
-
   --background-color: transparent;
 }
 
+.ResizeHandleOuter[aria-orientation="vertical"] {
+  width: 0.75rem;
+}
 
-.ResizeHandleOuter[data-resize-handle-active] {
+.ResizeHandleOuter[aria-orientation="horizontal"] {
+  height: 0.75rem;
+}
+
+.ResizeHandleOuter:hover,
+.ResizeHandleOuter[data-separator="active"],
+.ResizeHandleOuter[data-separator="focus"] {
   --background-color: rgba(255, 255, 255, 0.16);
+}
+
+.ResizeHandleOuter:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
 }
 
 .ResizeHandleInner {
   position: absolute;
-  top: 0.25em;
-  bottom: 0.25em;
-  left: 0.25em;
-  right: 0.25em;
-  border-radius: 0.25em;
+  inset: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ResizeHandleDots {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1875rem;
+  padding: 0.25rem 0.1875rem;
+  border-radius: 0.25rem;
   background-color: var(--background-color);
+  color: rgba(226, 232, 240, 0.65);
   transition: background-color 0.2s linear;
 }
 
-.Icon {
-  width: 1em;
-  height: 1em;
-  position: absolute;
-  left: calc(50% - 0.5rem);
-  top: calc(50% - 0.5rem);
-  color: rgba(226, 232, 240, 0.65);
+.ResizeHandleOuter[aria-orientation="vertical"] .ResizeHandleDots {
+  flex-direction: column;
+}
+
+.ResizeHandleDot {
+  width: 0.1875rem;
+  height: 0.1875rem;
+  flex: none;
+  border-radius: 50%;
+  background-color: currentColor;
 }
 

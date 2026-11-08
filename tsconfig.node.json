@@ -5,10 +5,9 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["vite.config.ts"]
+  "include": ["playwright.config.ts", "vite.config.ts", "vitest.config.ts"]
 }

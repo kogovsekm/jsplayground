@@ -30,7 +30,8 @@ const locateDelimiters = (end: { column: number }, lineContents: string) => {
  * @returns {ExpressionMap}
  */
 export const interpretCode = (code: string) => {
-  const transformedCode = Babel.transform(code, { presets: ["react"] }).code;
+  const transformResult = Babel.transform(code, { presets: ["react"] });
+  const transformedCode = transformResult?.code ?? "";
   const codeByLine = transformedCode?.split("\n");
   const tokenized = espree.tokenize(transformedCode || "", {
     loc: true,
